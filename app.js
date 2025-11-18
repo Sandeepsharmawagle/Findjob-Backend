@@ -13,6 +13,9 @@ const employerRoutes = require('./routes/employerRoutes');
 
 const app = express();
 
+// Trust proxy for production
+app.set('trust proxy', 1);
+
 // Connect to database
 connectDB();
 
@@ -20,12 +23,14 @@ connectDB();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// CORS - Simplified for token auth
 app.use(cors({
-  origin: "https://ssjobportal.netlify.app",
-  credentials: true, // Allow cookies
+  origin: process.env.FRONTEND_URL || "http://localhost:3001",
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  exposedHeaders: ['set-cookie'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+  // Removed: credentials: true
+  // Removed: exposedHeaders: ['set-cookie']
 }));
 
 // Serve static files from uploads directory
@@ -52,7 +57,6 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   console.error(err.stack);
   
-  // In production, don't expose error details
   const errorMessage = process.env.NODE_ENV === 'production' 
     ? 'Internal server error' 
     : err.message;

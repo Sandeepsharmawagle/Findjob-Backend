@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
 
 // Generate JWT token
-const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET || 'fallback_secret', {
-    expiresIn: '7d'
+const generateToken = (id) => {  // ← Changed parameter name
+  return jwt.sign({ id }, process.env.JWT_SECRET, {  // ← Changed to { id }
+    expiresIn: '30d'  // Changed to 30 days
   });
 };
 
