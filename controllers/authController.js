@@ -28,17 +28,17 @@ exports.register = async (req, res) => {
     // Generate token
     const token = generateToken(user._id);
 
-    // Send response with cookie
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    }).status(201).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role
+    // Send response with token in body
+    res.status(201).json({
+      success: true,
+      token,  // Include token in response
+      user: {
+        id: user._id,
+        _id: user._id,  // Keep both for compatibility
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -70,17 +70,17 @@ exports.login = async (req, res) => {
     // Generate token
     const token = generateToken(user._id);
 
-    // Send response with cookie
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    }).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role
+    // Send response with token in body
+    res.json({
+      success: true,
+      token,  // Include token in response
+      user: {
+        id: user._id,
+        _id: user._id,  // Keep both for compatibility
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -90,15 +90,23 @@ exports.login = async (req, res) => {
 
 // Logout user
 exports.logout = (req, res) => {
-  res.clearCookie('token').json({ message: 'Logged out successfully' });
+  res.json({ 
+    success: true,
+    message: 'Logged out successfully' 
+  });
 };
 
 // Get user profile
 exports.getProfile = async (req, res) => {
   try {
-    // Use req.user directly since it's already attached by the auth middleware
-    // req.user is the full user object from the database with password excluded
-    res.json(req.user);
+    // req.user is already attached by the auth middleware
+    res.json({
+      id: req.user._id,
+      _id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
