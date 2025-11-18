@@ -24,21 +24,18 @@ const allowedOrigins = [
   'http://localhost:3000'
 ];
 
+// CORS - Allow credentials for token auth
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, Postman)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(null, false);
-    }
-  },
+  origin: [
+    'https://ssjobportal.netlify.app',
+    'http://localhost:3001',
+    'http://localhost:3000'
+  ],
+  credentials: true,  // Changed to true
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 
 // Serve static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
