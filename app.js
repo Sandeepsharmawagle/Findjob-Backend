@@ -21,9 +21,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3001',
-  credentials: true,
-  optionsSuccessStatus: 200
+  origin: process.env.FRONTEND_URL,
+  credentials: true, // Allow cookies
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['set-cookie'],
 }));
 
 // Serve static files from uploads directory
@@ -49,7 +51,16 @@ app.use((req, res, next) => {
 // Error handling middleware - 500
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Internal server error', error: err.message });
+  
+  // In production, don't expose error details
+  const errorMessage = process.env.NODE_ENV === 'production' 
+    ? 'Internal server error' 
+    : err.message;
+    
+  res.status(500).json({ 
+    message: 'Internal server error', 
+    error: errorMessage 
+  });
 });
 
 module.exports = app;
