@@ -2,6 +2,14 @@ const Application = require('../models/Application');
 const Job = require('../models/Job');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, '..', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('Created uploads directory:', uploadsDir);
+}
 
 // Configure multer for resume uploads
 const storage = multer.diskStorage({
@@ -37,6 +45,11 @@ exports.uploadResume = upload.single('resume');
 // Apply for job
 exports.applyForJob = async (req, res) => {
   try {
+    console.log('Application submission received');
+    console.log('Request body:', req.body);
+    console.log('Request file:', req.file);
+    console.log('User:', req.user);
+    
     const { jobId, coverLetter, email, phone } = req.body;
     
     // Check if job exists
@@ -57,6 +70,7 @@ exports.applyForJob = async (req, res) => {
     
     // Check if resume was uploaded
     if (!req.file) {
+      console.error('No file uploaded');
       return res.status(400).json({ message: 'Please upload your resume' });
     }
 
@@ -69,6 +83,14 @@ exports.applyForJob = async (req, res) => {
       return res.status(400).json({ message: 'Phone number is required' });
     }
     
+    console.log('Creating application with data:', {
+      jobId,
+      applicantId: req.user._id,
+      resumeUrl: `/uploads/${req.file.filename}`,
+      email,
+      phone
+    });
+    
     // Create application
     const application = await Application.create({
       jobId,
@@ -79,9 +101,12 @@ exports.applyForJob = async (req, res) => {
       phone
     });
     
+    console.log('Application created successfully:', application._id);
     res.status(201).json(application);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Application submission error:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
 
